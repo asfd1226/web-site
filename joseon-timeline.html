@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>조선시대 인터랙티브 연표</title>
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+--bg:#faf6ee;--card:#fff;--ink:#2b2118;--sub:#7a6a58;--line:#c9b79c;--accent:#b5452f;--accent2:#e9c46a;--shadow:rgba(60,40,20,.18)}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){color-scheme:dark;--bg:#1e1a16;--card:#2b251f;--ink:#f3ebdd;--sub:#b5a690;--line:#5c4f40;--accent:#f08a6c;--accent2:#e9c46a;--shadow:rgba(0,0,0,.5)}}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif;min-height:100vh;display:flex;flex-direction:column}
+header{padding:20px 16px 4px;text-align:center}
+h1{margin:0;font-size:clamp(1.4rem,4vw,2rem)}
+header p{margin:6px 0 0;color:var(--sub);font-size:.95rem}
+.stage{flex:1;display:flex;flex-direction:column;justify-content:center;min-height:300px}
+.scroller{overflow-x:auto;scroll-behavior:smooth;padding:70px 0;-webkit-overflow-scrolling:touch;scrollbar-width:thin}
+.track{position:relative;display:flex;width:max-content;padding:0 calc(50vw - 80px)}
+.track::before{content:"";position:absolute;left:0;right:0;top:50%;height:6px;margin-top:-3px;background:var(--line);border-radius:3px}
+.node{position:relative;width:160px;flex:none;height:90px;background:none;border:0;cursor:pointer;color:inherit;font:inherit;padding:0}
+.dot{position:absolute;left:50%;top:50%;width:22px;height:22px;margin:-11px 0 0 -11px;border-radius:50%;background:var(--card);border:4px solid var(--accent);transition:transform .35s,background .3s,box-shadow .3s}
+.node:hover .dot{transform:scale(1.25)}
+.lab{position:absolute;left:50%;transform:translateX(-50%);width:140px;text-align:center;transition:transform .35s,opacity .3s;opacity:.7}
+.node:nth-child(odd) .lab{bottom:56px}
+.node:nth-child(even) .lab{top:56px}
+.yr{display:block;font-weight:700;color:var(--accent);font-size:.95rem}
+.nm{display:block;font-size:.95rem;line-height:1.3}
+.node.on .dot{transform:scale(1.8);background:var(--accent);box-shadow:0 0 0 8px color-mix(in srgb,var(--accent2) 45%,transparent)}
+.node.on .lab{opacity:1;transform:translateX(-50%) scale(1.18);font-weight:700}
+.node:focus-visible .dot{outline:3px solid var(--ink);outline-offset:3px}
+.ctrl{display:flex;justify-content:center;align-items:center;gap:12px;padding:0 16px 8px}
+.ctrl button{font:inherit;font-weight:700;padding:10px 18px;border-radius:999px;border:2px solid var(--accent);background:var(--card);color:var(--accent);cursor:pointer}
+.ctrl button:hover:not(:disabled){background:var(--accent);color:var(--card)}
+.ctrl button:disabled{opacity:.35;cursor:default}
+.count{color:var(--sub);min-width:60px;text-align:center}
+.bar{height:6px;background:var(--line);margin:0 16px 14px;border-radius:3px;overflow:hidden;max-width:600px;align-self:center;width:calc(100% - 32px)}
+.bar i{display:block;height:100%;width:0;background:var(--accent);transition:width .4s}
+.hint{text-align:center;color:var(--sub);font-size:.85rem;padding:0 16px 16px}
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.5);display:none;align-items:center;justify-content:center;padding:16px;z-index:20}
+.ov.show{display:flex;animation:fade .25s}
+.pop{background:var(--card);border-radius:20px;max-width:480px;width:100%;padding:24px;box-shadow:0 12px 40px var(--shadow);border-top:8px solid var(--accent);animation:up .3s;max-height:90vh;overflow-y:auto}
+.pop .big{font-size:2.4rem;line-height:1}
+.pop h2{margin:8px 0 2px;font-size:1.5rem}
+.pop .y{color:var(--accent);font-weight:700}
+.pop p{font-size:1.08rem;line-height:1.7;margin:12px 0}
+.pop .fact{background:color-mix(in srgb,var(--accent2) 28%,transparent);border-radius:12px;padding:10px 14px;font-size:1rem}
+.pop .row{display:flex;justify-content:space-between;gap:8px;margin-top:16px}
+.pop button{font:inherit;font-weight:700;padding:10px 16px;border-radius:12px;border:0;cursor:pointer;background:var(--accent);color:#fff}
+.pop button.g{background:transparent;color:var(--sub);border:2px solid var(--line)}
+@keyframes fade{from{opacity:0}}
+@keyframes up{from{transform:translateY(24px);opacity:0}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}.scroller{scroll-behavior:auto}}
+</style>
+</head>
+<body>
+<header>
+  <h1>🏯 조선시대 역사 연표</h1>
+  <p>동그라미를 눌러서 사건 이야기를 읽어 보세요!</p>
+</header>
+<main class="stage">
+  <div class="scroller" id="sc"><div class="track" id="tr"></div></div>
+  <div class="ctrl">
+    <button id="prev">◀ 이전</button><span class="count" id="cnt"></span><button id="next">다음 ▶</button>
+  </div>
+  <div class="bar"><i id="pg"></i></div>
+  <div class="hint">← 옆으로 밀거나 키보드 ←/→ 키로 시간 여행을 해 보세요 →</div>
+</main>
+<div class="ov" id="ov" role="dialog" aria-modal="true" aria-labelledby="pt">
+  <div class="pop" id="pop"></div>
+</div>
+<script>
+const E=[
+{y:1392,n:"조선 건국",e:"👑",t:"이성계 장군이 고려를 이어 새로운 나라 ‘조선’을 세웠어요. 나라의 중심인 수도는 한양, 지금의 서울이에요.",f:"조선은 무려 500년이 넘게 이어졌어요!"},
+{y:1418,n:"세종대왕 즉위",e:"📚",t:"세종이 임금님이 되었어요. 세종대왕은 백성을 아끼고, 과학과 공부를 크게 발전시킨 훌륭한 임금님이에요.",f:"비의 양을 재는 ‘측우기’도 이때 만들어졌어요."},
+{y:1443,n:"한글 창제",e:"✍️",t:"글자를 몰라 힘들어하는 백성을 위해 세종대왕이 쉽고 과학적인 글자, 한글을 만들었어요. 1446년에 ‘훈민정음’이라는 이름으로 온 나라에 알렸답니다.",f:"우리가 매일 쓰는 한글이 이때 태어났어요."},
+{y:1592,n:"임진왜란",e:"⚓",t:"일본이 우리나라에 쳐들어왔어요. 이순신 장군은 거북선으로 바다를 지켰고, 의병이라 불리는 백성들도 힘을 모아 나라를 지켰어요.",f:"전쟁은 1598년까지 약 7년 동안 이어졌어요."},
+{y:1636,n:"병자호란",e:"🏰",t:"청나라가 쳐들어왔어요. 인조 임금님은 남한산성에서 오래 버텼지만, 날씨는 춥고 먹을 것도 부족해서 결국 항복했어요.",f:"많은 백성이 힘든 시간을 보냈어요."},
+{y:1724,n:"영조의 탕평책",e:"⚖️",t:"영조 임금님은 편을 갈라 싸우던 신하들을 골고루 뽑아 쓰는 ‘탕평책’을 펼쳤어요. 모두가 사이좋게 나라 일을 하게 하려는 마음이었어요.",f:"‘탕평’은 치우치지 않고 공평하다는 뜻이에요."},
+{y:1794,n:"수원 화성 축조",e:"🧱",t:"정조 임금님이 수원에 튼튼하고 멋진 성, 화성을 쌓기 시작했어요. 무거운 돌을 쉽게 들어 올리는 ‘거중기’ 덕분에 빠르게 지을 수 있었어요.",f:"화성은 유네스코 세계유산이에요."},
+{y:1866,n:"병인양요",e:"🛡️",t:"프랑스 군대가 강화도에 쳐들어왔어요. 우리 군사들이 힘을 합쳐 용감하게 싸워서 물리쳤어요.",f:"‘양요’는 서양 사람들이 일으킨 난리라는 뜻이에요."},
+{y:1894,n:"동학농민운동",e:"🌾",t:"농민들이 지나친 세금과 욕심 많은 관리들에 맞서 들고 일어났어요. 전봉준 장군이 앞장서서 ‘모두가 평등한 세상’을 외쳤답니다.",f:"농민들이 스스로 나라를 바꾸려 한 큰 움직임이었어요."},
+{y:1897,n:"대한제국 선포",e:"🇰🇷",t:"고종이 황제가 되고, 나라 이름을 ‘대한제국’으로 바꾸었어요. 다른 나라들에게 우리나라가 스스로 선 당당한 나라임을 알리려는 뜻이었어요.",f:"이때부터 ‘대한’이라는 이름을 쓰게 되었어요."}
+];
+const tr=document.getElementById('tr'),sc=document.getElementById('sc'),ov=document.getElementById('ov'),pop=document.getElementById('pop');
+const cnt=document.getElementById('cnt'),pg=document.getElementById('pg'),pv=document.getElementById('prev'),nx=document.getElementById('next');
+let cur=-1;
+E.forEach((d,i)=>{
+  const b=document.createElement('button');b.className='node';b.setAttribute('aria-label',d.y+'년 '+d.n);
+  b.innerHTML='<span class="dot"></span><span class="lab"><span class="yr">'+d.y+'년</span><span class="nm">'+d.n+'</span></span>';
+  b.onclick=()=>select(i,true);tr.appendChild(b);
+});
+const nodes=[...tr.children];
+function center(i){const n=nodes[i];sc.scrollTo({left:n.offsetLeft+n.offsetWidth/2-sc.clientWidth/2,behavior:'smooth'})}
+function select(i,open){
+  if(i<0||i>=E.length)return;
+  cur=i;nodes.forEach((n,k)=>n.classList.toggle('on',k===i));
+  center(i);cnt.textContent=(i+1)+' / '+E.length;pg.style.width=((i+1)/E.length*100)+'%';
+  pv.disabled=i===0;nx.disabled=i===E.length-1;
+  if(open)show(i);
+}
+function show(i){
+  const d=E[i];
+  pop.innerHTML='<div class="big">'+d.e+'</div><h2 id="pt">'+d.n+'</h2><div class="y">'+d.y+'년</div><p>'+d.t+'</p><div class="fact">💡 '+d.f+'</div><div class="row"><button class="g" id="pp"'+(i===0?' disabled style="opacity:.35"':'')+'>◀ 이전 사건</button><button id="cl">닫기</button><button class="g" id="pn"'+(i===E.length-1?' disabled style="opacity:.35"':'')+'>다음 사건 ▶</button></div>';
+  ov.classList.add('show');
+  pop.querySelector('#cl').onclick=close;
+  pop.querySelector('#pp').onclick=()=>select(cur-1,true);
+  pop.querySelector('#pn').onclick=()=>select(cur+1,true);
+  pop.querySelector('#cl').focus();
+}
+function close(){ov.classList.remove('show')}
+ov.addEventListener('click',e=>{if(e.target===ov)close()});
+pv.onclick=()=>select(cur<0?0:cur-1,false);
+nx.onclick=()=>select(cur<0?0:cur+1,false);
+document.addEventListener('keydown',e=>{
+  const o=ov.classList.contains('show');
+  if(e.key==='Escape')close();
+  else if(e.key==='ArrowRight')select(cur<0?0:cur+1,o);
+  else if(e.key==='ArrowLeft')select(cur<0?0:cur-1,o);
+});
+window.addEventListener('resize',()=>{if(cur>=0)center(cur)});
+pv.disabled=true;cnt.textContent='0 / '+E.length;
+</script>
+</body>
+</html>
