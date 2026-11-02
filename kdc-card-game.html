@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>KDC 주류 짝꿍 카드</title>
+<link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#e8f4fb;--panel:#ffffff;--ink:#1f3a4d;--sub:#5b7a8e;--back:#2f8fd1;--back2:#1f6fa8;--face:#fffdf4;--match:#c9f0c8;--accent:#ff8a3d;--line:#bfdced;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:light}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#10222e;--panel:#183446;--ink:#eaf5fb;--sub:#9db9c9;--back:#3a9ee0;--back2:#2476ad;--face:#243f50;--match:#2f6b44;--line:#2c5068;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#10222e;--panel:#183446;--ink:#eaf5fb;--sub:#9db9c9;--back:#3a9ee0;--back2:#2476ad;--face:#243f50;--match:#2f6b44;--line:#2c5068;color-scheme:dark}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Jua","Apple SD Gothic Neo","Malgun Gothic",sans-serif;min-height:100vh}
+main{max-width:760px;margin:0 auto;padding:18px 14px 28px}
+h1{font-size:clamp(26px,6vw,36px);margin:0 0 4px;font-weight:400}
+.lead{margin:0 0 14px;color:var(--sub);font-size:16px}
+.themes{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.themes button{font:inherit;font-size:16px;padding:8px 14px;border-radius:999px;border:2px solid var(--line);background:var(--panel);color:var(--ink);cursor:pointer}
+.themes button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:#fff}
+.bar{display:flex;gap:10px;align-items:stretch;margin-bottom:14px;flex-wrap:wrap}
+.stat{flex:1;min-width:84px;background:var(--panel);border:2px solid var(--line);border-radius:14px;padding:6px 12px}
+.stat span{display:block;font-size:13px;color:var(--sub)}
+.stat b{font-size:26px;font-weight:400}
+.ctl{display:flex;gap:8px;align-items:center}
+.ctl button{font:inherit;font-size:16px;padding:10px 16px;border-radius:14px;border:0;background:var(--ink);color:var(--bg);cursor:pointer}
+.ctl button.ghost{background:var(--panel);color:var(--ink);border:2px solid var(--line)}
+button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;perspective:900px}
+.card{position:relative;aspect-ratio:3/4;border:0;padding:0;background:none;cursor:pointer;font:inherit;color:inherit}
+.inner{position:absolute;inset:0;transform-style:preserve-3d;transition:transform .5s}
+.card.open .inner,.card.done .inner{transform:rotateY(180deg)}
+.face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:6px;overflow:hidden}
+.back{background:repeating-linear-gradient(45deg,var(--back) 0 10px,var(--back2) 10px 20px);border:3px solid #fff;color:#fff;font-size:clamp(28px,8vw,44px)}
+.front{background:var(--face);border:3px solid var(--line);transform:rotateY(180deg)}
+.card.done .front{background:var(--match);border-color:#5dbb63}
+.emo{font-size:clamp(34px,10vw,56px);line-height:1}
+.nm{font-size:clamp(12px,3vw,16px);color:var(--sub);margin-top:4px}
+.term{font-size:clamp(15px,3vw,22px);line-height:1.25;word-break:keep-all}
+.mean{font-size:clamp(12px,2.2vw,15px);line-height:1.3;word-break:keep-all;color:var(--sub)}
+.shake{animation:sh .35s}
+@keyframes sh{25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+#fx{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:20}
+.over{position:fixed;inset:0;background:rgba(10,30,45,.55);display:none;align-items:center;justify-content:center;z-index:30;padding:20px}
+.over.show{display:flex}
+.box{background:var(--panel);border-radius:22px;padding:26px 24px;text-align:center;max-width:340px;width:100%}
+.box h2{font-size:30px;margin:0 0 6px;font-weight:400}
+.box p{margin:0 0 16px;color:var(--sub);font-size:18px}
+.box button{font:inherit;font-size:18px;padding:12px 22px;border-radius:14px;border:0;background:var(--accent);color:#fff;cursor:pointer}
+@media (max-width:560px){.grid{grid-template-columns:repeat(4,1fr);gap:6px}.term{font-size:clamp(13px,3.6vw,18px)}.mean{font-size:clamp(10px,2.8vw,13px)}}
+@media (prefers-reduced-motion:reduce){.inner{transition:none}.shake{animation:none}}
+</style>
+</head>
+<body>
+<main>
+  <h1>KDC 주류 짝꿍 카드</h1>
+  <p class="lead">도서관 책 분류 번호와 그 분야에 들어가는 주제를 짝지어 보세요.</p>
+  <div class="themes" id="themes" role="group" aria-label="난이도 선택"></div>
+  <div class="bar">
+    <div class="stat"><span>점수</span><b id="score">0</b></div>
+    <div class="stat"><span>시도</span><b id="tries">0</b></div>
+    <div class="stat"><span>남은 짝</span><b id="left">10</b></div>
+    <div class="ctl">
+      <button id="restart">다시 시작</button>
+      <button id="mute" class="ghost" aria-pressed="false">소리 켜짐</button>
+    </div>
+  </div>
+  <div class="grid" id="grid"></div>
+</main>
+<canvas id="fx"></canvas>
+<div class="over" id="over" role="dialog" aria-modal="true" aria-labelledby="ot">
+  <div class="box"><h2 id="ot">모두 맞혔어요!</h2><p id="om"></p><button id="again">한 번 더 하기</button></div>
+</div>
+<script>
+(function(){
+var KDC=[["000 총류","백과사전, 도서관, 신문, 컴퓨터"],["100 철학","마음, 생각, 윤리, 심리학"],["200 종교","불교, 기독교, 천주교, 신화"],["300 사회과학","법, 경제, 교육, 정치"],["400 자연과학","수학, 물리, 화학, 생물, 천문"],["500 기술과학","의학, 농업, 공학, 요리"],["600 예술","음악, 미술, 체육, 영화"],["700 언어","국어, 영어, 한자, 문법"],["800 문학","시, 소설, 동화, 희곡"],["900 역사","세계사, 한국사, 지리, 전기"]];
+var LEVELS=[["보통 6쌍",6],["어려움 10쌍",10]];
+var PAIRS=10,first=null,lock=false,score=0,tries=0,left=PAIRS,muted=false,ac=null;
+var $=function(i){return document.getElementById(i)};
+var grid=$("grid"),lv=$("themes");
+
+function ctx(){if(!ac){try{ac=new(window.AudioContext||window.webkitAudioContext)()}catch(e){}}if(ac&&ac.state==="suspended")ac.resume();return ac}
+function tone(f,d,type,t,v){var a=ctx();if(!a||muted)return;var o=a.createOscillator(),g=a.createGain(),s=a.currentTime+(t||0);o.type=type||"sine";o.frequency.setValueAtTime(f,s);g.gain.setValueAtTime(v||.15,s);g.gain.exponentialRampToValueAtTime(.001,s+d);o.connect(g);g.connect(a.destination);o.start(s);o.stop(s+d)}
+var sfx={flip:function(){tone(520,.07,"triangle")},ok:function(){tone(660,.15,"sine");tone(880,.2,"sine",.12)},no:function(){tone(220,.22,"sawtooth",0,.08)},win:function(){[523,659,784,1047,784,1047,1319].forEach(function(f,i){tone(f,.25,"triangle",i*.14,.16)})}};
+
+LEVELS.forEach(function(l){var b=document.createElement("button");b.textContent=l[0];b.setAttribute("aria-pressed",l[1]===PAIRS);b.onclick=function(){PAIRS=l[1];[].forEach.call(lv.children,function(c){c.setAttribute("aria-pressed",c===b)});start()};lv.appendChild(b)});
+
+function shuffle(a){for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t}return a}
+function start(){
+  var picked=shuffle(KDC.slice()).slice(0,PAIRS),deck=[];
+  picked.forEach(function(it,i){deck.push({id:i,html:'<div class="term">'+it[0]+'</div>'});deck.push({id:i,html:'<div class="mean">'+it[1]+'</div>'})});
+  shuffle(deck);first=null;lock=false;score=0;tries=0;left=PAIRS;upd();
+  grid.innerHTML="";
+  deck.forEach(function(c){
+    var b=document.createElement("button");b.className="card";b.dataset.id=c.id;b.setAttribute("aria-label","카드 뒤집기");
+    b.innerHTML='<div class="inner"><div class="face back">?</div><div class="face front">'+c.html+'</div></div>';
+    b.onclick=function(){pick(b)};grid.appendChild(b);
+  });
+  $("over").classList.remove("show");
+}
+function upd(){$("score").textContent=score;$("tries").textContent=tries;$("left").textContent=left}
+function pick(c){
+  if(lock||c.classList.contains("open")||c.classList.contains("done"))return;
+  c.classList.add("open");sfx.flip();
+  if(!first){first=c;return}
+  var a=first;first=null;tries++;lock=true;
+  if(a.dataset.id===c.dataset.id){
+    setTimeout(function(){a.classList.replace("open","done");c.classList.replace("open","done");score+=10;left--;upd();sfx.ok();lock=false;if(left===0)win()},450);
+  }else{
+    upd();
+    setTimeout(function(){sfx.no();a.classList.add("shake");c.classList.add("shake")},450);
+    setTimeout(function(){a.classList.remove("open","shake");c.classList.remove("open","shake");lock=false},1000);
+  }
+}
+function win(){
+  sfx.win();burst();
+  $("om").textContent="점수 "+score+"점 · "+tries+"번 만에 모두 찾았어요.";
+  setTimeout(function(){$("over").classList.add("show");$("again").focus()},900);
+}
+
+var cv=$("fx"),g=cv.getContext("2d"),ps=[],run=false;
+function size(){cv.width=innerWidth;cv.height=innerHeight}size();addEventListener("resize",size);
+function burst(){
+  if(matchMedia("(prefers-reduced-motion:reduce)").matches)return;
+  var cols=["#ff5d5d","#ffb703","#4cc9a0","#3a9ee0","#b57bff","#ff8ad8"];
+  [.2,.5,.8].forEach(function(x,k){setTimeout(function(){
+    for(var i=0;i<70;i++){var an=Math.random()*Math.PI*2,sp=3+Math.random()*7;
+      ps.push({x:cv.width*x,y:cv.height*.4,vx:Math.cos(an)*sp,vy:Math.sin(an)*sp-3,r:3+Math.random()*4,c:cols[i%cols.length],l:90+Math.random()*50})}
+    if(!run){run=true;requestAnimationFrame(tick)}
+  },k*350)});
+}
+function tick(){
+  g.clearRect(0,0,cv.width,cv.height);
+  ps=ps.filter(function(p){return p.l>0});
+  ps.forEach(function(p){p.x+=p.vx;p.y+=p.vy;p.vy+=.18;p.vx*=.99;p.l--;g.globalAlpha=Math.min(1,p.l/30);g.fillStyle=p.c;g.fillRect(p.x,p.y,p.r*1.6,p.r)});
+  g.globalAlpha=1;
+  if(ps.length)requestAnimationFrame(tick);else{run=false;g.clearRect(0,0,cv.width,cv.height)}
+}
+$("restart").onclick=function(){ctx();start()};
+$("again").onclick=function(){start()};
+$("mute").onclick=function(){muted=!muted;this.setAttribute("aria-pressed",muted);this.textContent=muted?"소리 꺼짐":"소리 켜짐"};
+start();
+})();
+</script>
+</body>
+</html>
