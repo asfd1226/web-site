@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>도형 돌려보기 - 도형 학습 도구</title>
+<link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#1d2b4f;--paper:#f5f9ff;--line:#cfe0f5;--blue:#2c6bed;--sun:#ffd23f;--bad:#c9303c;--good:#14805a}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font:18px/1.5 'Jua','Apple SD Gothic Neo','Malgun Gothic',sans-serif}
+main{max-width:860px;margin:0 auto;padding:16px}
+h1{font-size:28px;margin:4px 0 12px}
+button,select{font:inherit;color:inherit}
+button:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid var(--blue);outline-offset:2px}
+.tabs{display:flex;gap:8px;margin-bottom:8px}
+.tabs button{flex:1;min-height:48px;border:3px solid var(--ink);border-radius:14px;background:#fff;cursor:pointer}
+.tabs .on{background:var(--blue);border-color:var(--blue);color:#fff}
+.row{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0;align-items:center}
+.chip{display:flex;align-items:center;gap:6px;min-height:48px;padding:4px 14px 4px 8px;border:2px solid var(--line);border-radius:24px;background:#fff;cursor:pointer}
+.chip[aria-pressed=true]{border-color:var(--blue);background:#e6eeff}
+.stage{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:12px 0}
+.stage.solo{grid-template-columns:minmax(0,420px);justify-content:center}
+figure{margin:0}
+figcaption{text-align:center;margin-bottom:4px}
+svg.cv{width:100%;display:block;aspect-ratio:1;border:3px solid var(--ink);border-radius:16px;
+background:linear-gradient(var(--line) 1px,transparent 1px) 0 0/10% 10%,linear-gradient(90deg,var(--line) 1px,transparent 1px) 0 0/10% 10%,#fff}
+.ax{stroke:#9db8e0;stroke-width:1;stroke-dasharray:4 4}
+.gh{fill:none;stroke:#8aa4cf;stroke-width:2;stroke-dasharray:5 4}
+.sh{stroke:var(--ink);stroke-width:3;stroke-linejoin:round}
+.ctrls{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px}
+.ctrls button,.qbtn{min-height:52px;border:3px solid var(--ink);border-radius:14px;background:#fff;cursor:pointer;padding:4px 10px}
+.ctrls .main{background:var(--sun)}
+.ctrls button:active,.qbtn:active{transform:translateY(2px)}
+select{min-height:44px;border:2px solid var(--ink);border-radius:10px;padding:2px 8px;background:#fff}
+label{display:flex;align-items:center;gap:6px}
+input[type=checkbox]{width:22px;height:22px}
+.tag{display:inline-block;background:#e6eeff;border-radius:12px;padding:0 10px;margin:2px 4px 2px 0}
+#fb{min-height:56px;font-size:20px;margin:8px 0}
+#fb.good{color:var(--good)}#fb.bad{color:var(--bad)}
+.qbtn.go{background:var(--blue);color:#fff;border-color:var(--blue)}
+.qbtn[disabled]{opacity:.45;cursor:default}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<main>
+<h1>도형 돌려보기</h1>
+<div class="tabs">
+  <button id="tp" class="on">연습 모드</button>
+  <button id="tq">퀴즈 모드</button>
+</div>
+<div class="row" id="shapes" role="group" aria-label="도형 고르기"></div>
+
+<section class="stage solo" id="stage">
+  <figure id="figT" hidden><figcaption>목표 모양</figcaption><svg id="cvT" class="cv" viewBox="-100 -100 200 200" role="img" aria-label="목표 모양"></svg></figure>
+  <figure><figcaption>내 도형</figcaption><svg id="cv" class="cv" viewBox="-100 -100 200 200" role="img" aria-label="내 도형"></svg></figure>
+</section>
+
+<div class="ctrls">
+  <button id="bccw" class="main">↺ 반시계 돌리기</button>
+  <button id="bcw" class="main">↻ 시계 돌리기</button>
+  <button id="bfh" class="main">⇆ 좌우 뒤집기</button>
+  <button id="bfv" class="main">⇅ 상하 뒤집기</button>
+  <button id="bun">↩ 되돌리기</button>
+  <button id="brs">처음으로</button>
+</div>
+<div class="row">
+  <label>돌리는 각도 <select id="stepSel"><option value="90">90°</option><option value="45">45°</option></select></label>
+  <label id="ghostRow"><input type="checkbox" id="ghost" checked> 처음 모양 보기</label>
+  <label><input type="checkbox" id="snd" checked> 효과음</label>
+</div>
+<p>움직인 순서: <span id="log"></span></p>
+
+<section id="quiz" hidden>
+  <div class="row">
+    <label>단계 <select id="lv">
+      <option value="1">1단계 돌리기만</option>
+      <option value="2">2단계 돌리기와 뒤집기</option>
+      <option value="3">3단계 45° 돌리기까지</option>
+    </select></label>
+    <span id="stat"></span>
+  </div>
+  <p>초록색 목표 모양과 똑같아지도록 노란 도형을 움직인 뒤 확인하세요.</p>
+  <div class="row">
+    <button class="qbtn go" id="chk">확인하기</button>
+    <button class="qbtn" id="nxt" hidden>다음 문제</button>
+  </div>
+  <div id="fb" role="status" aria-live="polite"></div>
+</section>
+</main>
+
+<script>
+const $=id=>document.getElementById(id);
+const reg=(n,R,s=-90)=>Array.from({length:n},(_,i)=>{const a=(s+360/n*i)*Math.PI/180;return[+(R*Math.cos(a)).toFixed(1),+(R*Math.sin(a)).toFixed(1)]});
+// p: 꼭짓점, f: 방향 표시 글자 F의 위치와 크기
+const SH={
+ '직각삼각형':{p:[[-40,37],[80,37],[-40,-73]],f:[-5,0,.9]},
+ '정삼각형':{p:reg(3,85),f:[0,8,.6]},
+ '정사각형':{p:[[-65,-65],[65,-65],[65,65],[-65,65]],f:[0,0,1.2]},
+ '평행사변형':{p:[[-70,40],[30,40],[70,-40],[-30,-40]],f:[0,0,.9]},
+ '정오각형':{p:reg(5,85),f:[0,3,1]},
+ '정육각형':{p:reg(6,80,0),f:[0,0,1.2]},
+ 'ㄴ자 도형':{p:[[-45,-80],[0,-80],[0,5],[75,5],[75,50],[-45,50]],f:[-22,-38,.7]}
+};
+const F='M-12-22H14v8H-4v10H8v8H-4v18h-8z';
+const I=[1,0,0,1];
+const rot=d=>{const r=d*Math.PI/180;return[Math.cos(r),Math.sin(r),-Math.sin(r),Math.cos(r)]};
+const mul=(O,M)=>[O[0]*M[0]+O[2]*M[1],O[1]*M[0]+O[3]*M[1],O[0]*M[2]+O[2]*M[3],O[1]*M[2]+O[3]*M[3]];
+const same=(A,B)=>A.every((v,i)=>Math.abs(v-B[i])<1e-3);
+const det=M=>M[0]*M[3]-M[1]*M[2];
+const OPS={
+ cw:(t,s)=>rot(t*s),ccw:(t,s)=>rot(-t*s),
+ fh:t=>[1-2*t,0,0,1],fv:t=>[1,0,0,1-2*t]
+};
+const label=(op,s)=>op==='cw'?`↻ ${s}°`:op==='ccw'?`↺ ${s}°`:op==='fh'?'⇆ 좌우':'⇅ 상하';
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+
+let shape='정사각형',M=I,hist=[],log=[],mode='practice',busy=false;
+let level=1,qn=1,first=0,tries=0,answered=false,fin=false,target=I;
+
+function draw(svg,m,fill,ghost){
+  const s=SH[shape],pts=s.p.map(q=>q.join(',')).join(' '),[fx,fy,fs]=s.f;
+  svg.innerHTML=
+   '<line class="ax" x1="0" y1="-100" x2="0" y2="100"/><line class="ax" x1="-100" y1="0" x2="100" y2="0"/>'+
+   (ghost?`<polygon class="gh" points="${pts}"/>`:'')+
+   `<g transform="matrix(${m.join(' ')} 0 0)"><polygon class="sh" points="${pts}" fill="${fill}"/>`+
+   `<path transform="translate(${fx} ${fy}) scale(${fs})" d="${F}" fill="#1d2b4f"/></g>`;
+}
+function paint(m=M){
+  draw($('cv'),m,'#ffd23f',mode==='practice'&&$('ghost').checked);
+  if(mode==='quiz')draw($('cvT'),target,'#7fdcb8',false);
+}
+function renderLog(){$('log').innerHTML=log.length?log.map(l=>`<span class="tag">${l}</span>`).join(''):'아직 없어요';}
+const step=()=>mode==='quiz'&&level<3?90:+$('stepSel').value;
+function fb(t,c=''){$('fb').textContent=t;$('fb').className=c;}
+
+function apply(op){
+  if(busy)return;busy=true;
+  const s=step(),M0=M,t0=performance.now();
+  const dur=matchMedia('(prefers-reduced-motion:reduce)').matches?0:280;
+  hist.push([M0,log.slice()]);
+  const tick=()=>{
+    const t=dur?Math.min(1,(performance.now()-t0)/dur):1;
+    const e=t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2;
+    if(t<1){paint(mul(OPS[op](e,s),M0));requestAnimationFrame(tick);return}
+    M=mul(OPS[op](1,s),M0).map(v=>Math.round(v*1e6)/1e6);
+    log.push(label(op,s));busy=false;paint();renderLog();
+    if(mode==='quiz'&&!answered)fb('');
+  };
+  tick();
+}
+function undo(){if(busy||!hist.length)return;[M,log]=hist.pop();paint();renderLog();}
+function reset(){if(busy)return;M=I;hist=[];log=[];paint();renderLog();}
+
+function beep(ok){
+  if(!$('snd').checked)return;
+  try{const c=new(window.AudioContext||window.webkitAudioContext)(),o=c.createOscillator(),g=c.createGain();
+  o.type='triangle';o.connect(g);g.connect(c.destination);
+  o.frequency.setValueAtTime(ok?660:220,c.currentTime);
+  if(ok)o.frequency.setValueAtTime(880,c.currentTime+.15);
+  g.gain.setValueAtTime(.15,c.currentTime);g.gain.exponentialRampToValueAtTime(.001,c.currentTime+.35);
+  o.start();o.stop(c.currentTime+.35);}catch(e){}
+}
+
+// 퀴즈
+function makeTarget(){
+  let T;
+  do{
+    if(level===1)T=rot(pick([90,180,270]));
+    else{
+      T=I;const n=pick([2,3]);
+      for(let i=0;i<n;i++){
+        const op=pick(['cw','ccw','fh','fv']);
+        T=mul(OPS[op](1,level===3?pick([45,90]):90),T);
+      }
+    }
+  }while(same(T,I));
+  return T;
+}
+function upd(){
+  $('stat').textContent=`문제 ${qn}/10 · 한 번에 맞힌 문제 ${first}개`;
+  $('stepSel').disabled=mode==='quiz'&&level<3;
+  if($('stepSel').disabled)$('stepSel').value='90';
+}
+function newQ(){
+  target=makeTarget();M=I;hist=[];log=[];tries=0;answered=false;
+  $('chk').disabled=false;$('nxt').hidden=true;fb('');paint();renderLog();upd();
+}
+function startQuiz(){qn=1;first=0;fin=false;newQ();}
+function check(){
+  if(busy||answered)return;
+  if(same(M,target)){
+    answered=true;if(tries===0)first++;
+    fb(tries===0?'정답이에요! 한 번에 맞혔어요.':'정답이에요! 끝까지 해냈어요.','good');
+    beep(1);$('chk').disabled=true;$('nxt').hidden=false;
+    $('nxt').textContent=qn===10?'결과 보기':'다음 문제';upd();
+  }else{
+    tries++;beep(0);
+    fb(Math.sign(det(M))!==Math.sign(det(target))
+      ?'아직 달라요. 뒤집힌 모양이 목표와 달라요. 좌우나 상하 뒤집기를 생각해 보세요.'
+      :'아직 달라요. 뒤집힌 상태는 같아요. 돌리는 각도를 다시 살펴보세요.','bad');
+  }
+}
+$('nxt').onclick=()=>{
+  if(fin){startQuiz();return}
+  if(qn===10){fin=true;fb(`10문제를 모두 풀었어요! 한 번에 맞힌 문제는 ${first}개예요.`,'good');$('nxt').textContent='다시 도전';return}
+  qn++;newQ();
+};
+
+// 화면 구성
+function setMode(m){
+  mode=m;
+  $('tp').classList.toggle('on',m==='practice');$('tq').classList.toggle('on',m==='quiz');
+  $('stage').classList.toggle('solo',m==='practice');
+  $('figT').hidden=m==='practice';$('quiz').hidden=m==='practice';$('ghostRow').hidden=m==='quiz';
+  if(m==='quiz')startQuiz();else{reset();upd();}
+}
+function buildShapes(){
+  $('shapes').innerHTML='';
+  for(const name in SH){
+    const b=document.createElement('button');b.className='chip';b.setAttribute('aria-pressed',name===shape);
+    b.innerHTML=`<svg viewBox="-100 -100 200 200" width="30" height="30" aria-hidden="true"><polygon points="${SH[name].p.map(q=>q.join(',')).join(' ')}" fill="#ffd23f" stroke="#1d2b4f" stroke-width="8" stroke-linejoin="round"/></svg>${name}`;
+    b.onclick=()=>{if(busy)return;shape=name;buildShapes();if(mode==='quiz'){newQ()}else reset();};
+    $('shapes').appendChild(b);
+  }
+}
+$('tp').onclick=()=>setMode('practice');$('tq').onclick=()=>setMode('quiz');
+$('bcw').onclick=()=>apply('cw');$('bccw').onclick=()=>apply('ccw');
+$('bfh').onclick=()=>apply('fh');$('bfv').onclick=()=>apply('fv');
+$('bun').onclick=undo;$('brs').onclick=reset;
+$('ghost').onchange=()=>paint();
+$('chk').onclick=check;
+$('lv').onchange=e=>{level=+e.target.value;startQuiz();};
+buildShapes();paint();renderLog();upd();
+</script>
+</body>
+</html>
