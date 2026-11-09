@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="ko"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>속담 이어말하기 게임</title>
+<style>
+:root{--bg:#fff7e0;--card:#fff;--ink:#3a2e1f;--sub:#7a6a55;--pri:#ff8a3d;--pri2:#d96a1c;--ok:#2e9e5b;--bad:#e0483e;--line:#f0dfb8;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#2a2218;--card:#3a3022;--ink:#fbefd9;--sub:#c9b898;--line:#55462f;color-scheme:dark}}
+*{box-sizing:border-box}html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Jua","Noto Sans KR","Malgun Gothic",sans-serif;min-height:100vh;min-height:100dvh;display:flex;justify-content:center;padding:16px}
+.wrap{width:100%;max-width:640px}
+.card{background:var(--card);border-radius:24px;padding:24px;border:2px solid var(--line);box-shadow:0 8px 0 var(--line),0 18px 30px rgba(0,0,0,.12)}
+h1{font-size:2rem;margin:0 0 8px;text-align:center}
+p.d{text-align:center;color:var(--sub);margin:0 0 18px;line-height:1.6}
+.scene{perspective:900px;margin:10px 0 18px}
+.set{transform:rotateX(8deg) rotateY(-4deg);transform-style:preserve-3d;background:linear-gradient(145deg,#ffd27a,#ffb347);color:#4a2c00;border-radius:20px;padding:18px;box-shadow:0 10px 0 #d98a1f,0 22px 28px rgba(0,0,0,.2);transition:transform .3s}
+.set:hover{transform:rotateX(0) rotateY(0)}
+.set h2{margin:0 0 6px;font-size:1.1rem}
+.big{font-size:2.4rem;text-align:center;font-weight:800}
+input[type=range]{width:100%;accent-color:var(--pri2);height:34px}
+.btn{font:inherit;font-size:1.2rem;border:0;border-radius:16px;padding:12px 20px;background:var(--pri);color:#fff;cursor:pointer;box-shadow:0 5px 0 var(--pri2);transition:transform .08s,box-shadow .08s}
+.btn:active{transform:translateY(4px);box-shadow:0 1px 0 var(--pri2)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn.g{background:#8e7cc3;box-shadow:0 5px 0 #6a5a9a}.btn.s{background:var(--ok);box-shadow:0 5px 0 #1d7a43}
+.full{width:100%;font-size:1.5rem;padding:14px}
+.hide{display:none!important}
+.top{display:flex;gap:10px;margin-bottom:14px}
+.stat{flex:1;background:var(--bg);border:2px solid var(--line);border-radius:16px;text-align:center;padding:8px}
+.stat small{display:block;color:var(--sub);font-size:.85rem}.stat b{font-size:1.7rem}
+.stat.low b{color:var(--bad)}
+.bar{height:10px;background:var(--line);border-radius:6px;overflow:hidden;margin-bottom:16px}.bar i{display:block;height:100%;background:var(--pri);transition:width .25s linear}
+.q{font-size:clamp(1.5rem,6vw,2.2rem);text-align:center;font-weight:800;padding:20px 8px;background:var(--bg);border-radius:18px;word-break:keep-all;line-height:1.4}
+.q span{color:var(--pri2)}
+.hint{min-height:44px;text-align:center;font-size:1.6rem;letter-spacing:4px;color:var(--pri2);margin:12px 0}
+.row{display:flex;gap:8px;margin-top:8px}
+input[type=text]{flex:1;min-width:0;font:inherit;font-size:1.5rem;padding:12px 14px;border:3px solid var(--line);border-radius:14px;background:var(--card);color:var(--ink)}
+input[type=text]:focus{outline:0;border-color:var(--pri)}
+.fb{margin-top:14px;padding:14px;border-radius:16px;font-size:1.15rem;line-height:1.6}
+.fb.ok{background:#e0f6e8;color:#14562f;text-align:center;font-size:1.6rem}
+.fb.bad{background:#fde6e3;color:#7a1d16}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .fb.ok{background:#1f4a31;color:#d7f6e3}:root:not([data-theme="light"]) .fb.bad{background:#53231f;color:#ffd9d4}}
+.fb b{font-size:1.3rem}
+.res{text-align:center;font-size:1.3rem;line-height:1.9}
+.wl{text-align:left;font-size:1rem;max-height:240px;overflow:auto;border:2px solid var(--line);border-radius:12px;padding:8px 14px;margin:12px 0}
+.wl div{padding:4px 0;border-bottom:1px dashed var(--line)}
+.up{font-size:.9rem;color:var(--sub);text-align:center;margin-top:12px}
+@media (max-width:480px){.card{padding:16px;border-radius:18px}h1{font-size:1.5rem}.btn{font-size:1.05rem;padding:12px}.row{flex-wrap:wrap}.hint{font-size:1.3rem;letter-spacing:2px}.stat b{font-size:1.4rem}.fb{font-size:1.05rem}}
+button,input{touch-action:manipulation}
+canvas{position:fixed;inset:0;pointer-events:none;z-index:50}
+</style></head><body>
+<canvas id="fx"></canvas>
+<div class="wrap">
+
+<div id="s1" class="card">
+ <h1>🐯 속담 이어말하기 게임</h1>
+ <p class="d">속담의 앞부분을 보고 뒷부분을 맞혀 보세요!<br>막히면 초성힌트를 쓸 수 있어요. (최대 2번)</p>
+ <div class="scene"><div class="set">
+  <h2>⏱ 게임 설정 · 제한시간</h2>
+  <div class="big"><span id="tv">120</span>초</div>
+  <input type="range" id="tr" min="30" max="300" step="10" value="120" aria-label="제한시간">
+ </div></div>
+ <button class="btn full" id="go">게임 시작!</button>
+ <div class="up">📂 선생님용: 다른 속담 파일(.csv, 앞부분·뒷부분[·해설])을 쓰려면<br><input type="file" id="fi" accept=".csv,text/csv"><div id="fn">현재 문제 <b id="cnt">0</b>개</div></div>
+</div>
+
+<div id="s2" class="card hide">
+ <div class="top">
+  <div class="stat"><small>점수</small><b id="sc">0</b></div>
+  <div class="stat" id="tbox"><small>남은 시간</small><b id="tl">0</b></div>
+ </div>
+ <div class="bar"><i id="pb"></i></div>
+ <div class="q" id="q"></div>
+ <div class="hint" id="h"></div>
+ <div class="row">
+  <input type="text" id="in" placeholder="뒷부분을 써 보세요" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="done">
+  <button class="btn s" id="ck">확인</button>
+ </div>
+ <div class="row">
+  <button class="btn g" id="hb" style="flex:1">💡 초성힌트 (2번 남음)</button>
+  <button class="btn" id="sk" style="flex:1;background:#999;box-shadow:0 5px 0 #6f6f6f">모르겠어요</button>
+ </div>
+ <div class="fb hide" id="fb"></div>
+ <button class="btn full hide" id="nx" style="margin-top:12px">다음 문제 ▶</button>
+</div>
+
+<div id="s3" class="card hide">
+ <h1 id="rt">🎉 게임 끝!</h1>
+ <div class="res">맞힌 정답 <b id="r1"></b>개 / 푼 문제 <b id="r2"></b>개<br>남은 시간 <b id="r3"></b>초 · 점수 <b id="r4"></b>점</div>
+ <button class="btn full" id="re">다시 하기</button>
+</div>
+
+</div>
+<script>
+const DEFAULT=[{"a": "천 리 길도", "b": "한 걸음부터", "m": ""}, {"a": "시작이", "b": "반이다", "m": ""}, {"a": "고생 끝에", "b": "낙이 온다", "m": ""}, {"a": "공든 탑이", "b": "무너지랴", "m": ""}, {"a": "하늘은 스스로", "b": "돕는 자를 돕는다", "m": ""}, {"a": "티끌 모아", "b": "태산", "m": ""}, {"a": "구르는 돌에는", "b": "이끼가 끼지 않는다", "m": ""}, {"a": "백지장도", "b": "맞들면 낫다", "m": ""}, {"a": "낙숫물이", "b": "댓돌을 뚫는다", "m": ""}, {"a": "뜻이 있는 곳에", "b": "길이 있다", "m": ""}, {"a": "가는 말이", "b": "고와야 오는 말이 곱다", "m": ""}, {"a": "말 한마디에", "b": "천 냥 빚도 갚는다", "m": ""}, {"a": "친구 따라", "b": "강남 간다", "m": ""}, {"a": "가까운 이웃이", "b": "먼 친척보다 낫다", "m": ""}, {"a": "사촌이 땅을 사면", "b": "배가 아프다", "m": ""}, {"a": "백 번 듣는 것이", "b": "한 번 보는 것만 못하다", "m": ""}, {"a": "낮말은 새가", "b": "듣고 밤말은 쥐가 듣는다", "m": ""}, {"a": "웃는 얼굴에", "b": "침 못 뱉는다", "m": ""}, {"a": "가재는", "b": "게 편이다", "m": ""}, {"a": "피는", "b": "물보다 진하다", "m": ""}, {"a": "아는 길도", "b": "물어 가라", "m": ""}, {"a": "돌다리도", "b": "두들겨 보고 건너라", "m": ""}, {"a": "세 살 버릇", "b": "여든까지 간다", "m": ""}, {"a": "배움에는", "b": "끝이 없다", "m": ""}, {"a": "모르는 게", "b": "약이다", "m": ""}, {"a": "하나를 보면", "b": "열을 안다", "m": ""}, {"a": "호미로 막을 것을", "b": "가래로 막는다", "m": ""}, {"a": "서당 개 삼 년이면", "b": "풍월을 읊는다", "m": ""}, {"a": "등잔 밑이", "b": "어둡다", "m": ""}, {"a": "원숭이도", "b": "나무에서 떨어진다", "m": ""}, {"a": "싼 게", "b": "비지떡이다", "m": ""}, {"a": "돈은 있다가도", "b": "없고 없다가도 있다", "m": ""}, {"a": "개같이 벌어서", "b": "정승같이 쓴다", "m": ""}, {"a": "소 잃고", "b": "외양간 고친다", "m": ""}, {"a": "바늘 도둑이", "b": "소도둑 된다", "m": ""}, {"a": "남의 떡이", "b": "더 커 보인다", "m": ""}, {"a": "공짜라면", "b": "양잿물도 마신다", "m": ""}, {"a": "밑 빠진 독에", "b": "물 붓기", "m": ""}, {"a": "가는 날이", "b": "장날이다", "m": ""}, {"a": "십 년이면", "b": "강산도 변한다", "m": ""}, {"a": "급할수록", "b": "돌아가라", "m": ""}, {"a": "믿는 도끼에", "b": "발등 찍힌다", "m": ""}, {"a": "아니 땐 굴뚝에", "b": "연기 나랴", "m": ""}, {"a": "우물 안", "b": "개구리", "m": ""}, {"a": "발 없는 말이", "b": "천 리 간다", "m": ""}, {"a": "꿩 먹고", "b": "알 먹기", "m": ""}, {"a": "누워서", "b": "떡 먹기", "m": ""}, {"a": "믿는 구석이", "b": "있어야 힘이 난다", "m": ""}, {"a": "바람 앞의", "b": "등불", "m": ""}, {"a": "열 번 찍어", "b": "안 넘어가는 나무 없다", "m": ""}];
+let okAt=0,bank=DEFAULT.slice(),order=[],idx=0,score=0,right=0,tried=0,wrong=[],tl=0,total=0,timer=null,hints=0,locked=false,cur=null;
+const $=id=>document.getElementById(id);
+const norm=s=>(s||"").replace(/[\s.,!?'"“”‘’~·、。]/g,"");
+const SUF=["입니다","이에요","이어요","예요","이야","이다","이라","이요","합니다","해요","한다","다","요","야","이","가","은","는","을","를","에","도","만","의","로","와","과"].sort((a,b)=>b.length-a.length);
+function stem(s){s=norm(s);for(let k=0;k<2;k++){const f=SUF.find(x=>s.length>x.length&&s.endsWith(x));if(!f)break;s=s.slice(0,-f.length)}return s}
+function same(v,c){let u=norm(v);const a=norm(c.a),b=norm(c.b);if(u.startsWith(a)&&u.length>a.length)u=u.slice(a.length);return u===b||stem(u)===stem(b)}
+function show(n){["s1","s2","s3"].forEach(k=>$(k).classList.toggle("hide",k!=="s"+n))}
+$("cnt").textContent=bank.length;
+$("tr").oninput=e=>$("tv").textContent=e.target.value;
+
+function parseCSV(t){
+ t=t.replace(/^\uFEFF/,"");const rows=[];let r=[],c="",q=false;
+ for(let i=0;i<t.length;i++){const ch=t[i];
+  if(q){if(ch=='"'){if(t[i+1]=='"'){c+='"';i++}else q=false}else c+=ch}
+  else if(ch=='"')q=true;
+  else if(ch==","){r.push(c);c=""}
+  else if(ch=="\n"||ch=="\r"){if(ch=="\r"&&t[i+1]=="\n")i++;r.push(c);rows.push(r);r=[];c=""}
+  else c+=ch}
+ if(c||r.length){r.push(c);rows.push(r)}
+ return rows.filter(x=>x.length>=2&&x[0].trim()&&x[1].trim()).map(x=>({a:x[0].trim(),b:x[1].trim(),m:(x[2]||"").trim()}));
+}
+$("fi").onchange=e=>{
+ const f=e.target.files[0];if(!f)return;
+ const rd=new FileReader();rd.onload=()=>{
+  let t=rd.result;let rows=parseCSV(t);
+  if(rows.length&&(rows[0].a==="앞부분"||/^question|문제/i.test(rows[0].a)))rows.shift();
+  if(rows.length){bank=rows;$("cnt").textContent=bank.length;$("fn").innerHTML="✅ 불러온 문제 <b>"+bank.length+"</b>개"}
+  else $("fn").textContent="⚠️ 읽을 수 있는 문제가 없어요. 앞부분,뒷부분 형식인지 확인해 주세요.";
+ };rd.readAsText(f,"utf-8");
+};
+
+const CH="ㄱㄲㄴㄷㄸㄹㅁㅂㅃㅅㅆㅇㅈㅉㅊㅋㅌㅍㅎ";
+function cho(s){return [...s].map(c=>{const n=c.charCodeAt(0)-44032;return n>=0&&n<11172?CH[Math.floor(n/588)]:c}).join("")}
+
+$("go").onclick=()=>{
+ total=tl=+$("tr").value;score=right=tried=0;wrong=[];idx=0;
+ order=bank.map((_,i)=>i).sort(()=>Math.random()-.5);
+ show(2);$("sc").textContent=0;upd();
+ clearInterval(timer);timer=setInterval(tick,1000);next();
+};
+function upd(){$("tl").textContent=tl;$("pb").style.width=(tl/total*100)+"%";$("tbox").classList.toggle("low",tl<=10)}
+function tick(){if(locked)return;tl--;upd();if(tl<=0){tl=0;upd();end(true)}}
+function next(){
+ if(idx>=order.length){end(false);return}
+ cur=bank[order[idx++]];locked=false;hints=0;
+ $("q").innerHTML=cur.a+" <span>＿＿＿＿</span>";
+ $("h").textContent="";$("in").value="";$("in").disabled=false;$("ck").disabled=false;$("sk").disabled=false;
+ $("hb").disabled=false;$("hb").textContent="💡 초성힌트 (2번 남음)";
+ $("fb").className="fb hide";$("nx").classList.add("hide");$("in").focus();
+}
+$("hb").onclick=()=>{
+ if(locked||hints>=2)return;hints++;
+ const w=cur.b.split(/\s+/);
+ $("h").textContent=hints===1?cho(cur.b):w[0]+(w.length>1?" "+cho(w.slice(1).join(" ")):"");
+ $("hb").textContent="💡 초성힌트 ("+(2-hints)+"번 남음)";
+ if(hints>=2)$("hb").disabled=true;$("in").focus();
+};
+function lock(){locked=true;$("in").disabled=true;$("ck").disabled=true;$("sk").disabled=true;$("hb").disabled=true}
+function check(){
+ if(locked)return;const v=$("in").value;if(!norm(v))return;
+ tried++;lock();
+ if(same(v,cur)){
+  right++;score+=10-hints*2<4?4:10-hints*2;$("sc").textContent=score;
+  const f=$("fb");f.className="fb ok";f.innerHTML="🎉 정답! <br><small>"+cur.a+" <b>"+cur.b+"</b> · 남은 시간 "+tl+"초</small>";
+  boom();setTimeout(next,1000);
+ }else miss(false);
+}
+function miss(skip){
+ if(!locked){tried++;lock()}
+ wrong.push(cur);
+ const f=$("fb");f.className="fb bad";
+ f.innerHTML=(skip?"😅 괜찮아요, 같이 알아봐요!":"😢 아쉬워요! 내가 쓴 답: <b>"+($("in").value||"-")+"</b>")+"<br>정답: "+cur.a+" <b>"+cur.b+"</b>"+(cur.m?"<br>📖 뜻: "+cur.m:"<br>📖 해설: 속담은 "+(cur.a+" "+cur.b)+" 라고 이어서 말해요. 소리 내어 한 번 읽어 보세요!");
+ okAt=Date.now()+700;$("nx").classList.remove("hide");$("fb").scrollIntoView({block:"nearest",behavior:"smooth"});
+}
+$("ck").onclick=check;$("sk").onclick=()=>{if(!locked)miss(true)};$("nx").onclick=()=>{if(Date.now()>=okAt)next()};
+$("in").onkeydown=e=>{if(e.key==="Enter"&&!e.isComposing&&!e.repeat){e.preventDefault();check()}};
+document.addEventListener("keydown",e=>{if(e.key==="Enter"&&!e.repeat&&locked&&!$("s2").classList.contains("hide")&&!$("nx").classList.contains("hide")&&Date.now()>=okAt){e.preventDefault();next()}});
+function end(timeUp){
+ clearInterval(timer);locked=true;
+ $("rt").textContent=timeUp?"⏰ 시간 끝!":"🎉 모든 문제 완료!";
+ $("r1").textContent=right;$("r2").textContent=tried;$("r3").textContent=tl;$("r4").textContent=score;
+ show(3);if(right>0)boom();
+}
+$("re").onclick=()=>show(1);
+
+const cv=$("fx"),cx=cv.getContext("2d");let ps=[],run=false;
+function rs(){cv.width=innerWidth;cv.height=innerHeight}rs();addEventListener("resize",rs);
+function boom(){
+ for(let k=0;k<3;k++){const x=cv.width*(.2+Math.random()*.6),y=cv.height*(.2+Math.random()*.3),hue=Math.random()*360;
+  for(let i=0;i<40;i++){const a=Math.PI*2*i/40,s=2+Math.random()*4;ps.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,l:1,c:"hsl("+(hue+Math.random()*40)+",90%,60%)"})}}
+ if(!run){run=true;requestAnimationFrame(loop)}
+}
+function loop(){
+ cx.clearRect(0,0,cv.width,cv.height);
+ ps=ps.filter(p=>p.l>0);
+ ps.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.vy+=.08;p.vx*=.985;p.l-=.016;cx.globalAlpha=Math.max(p.l,0);cx.fillStyle=p.c;cx.beginPath();cx.arc(p.x,p.y,3,0,7);cx.fill()});
+ if(ps.length)requestAnimationFrame(loop);else{run=false;cx.clearRect(0,0,cv.width,cv.height)}
+}
+</script></body></html>
