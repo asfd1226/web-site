@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>3D 주사위 시뮬레이터</title>
+<style>
+:root{--bg:#f5f6fa;--card:#fff;--text:#1d2433;--sub:#5b6477;--line:#dde1ea;--accent:#3b6cf6;--bar:#3b6cf6;--ok:#168a4a;--bad:#d6342c;--theory:#e08a00;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#12151c;--card:#1b2030;--text:#e8ebf3;--sub:#9aa3b8;--line:#2d3448;--accent:#6d93ff;--bar:#6d93ff;--ok:#4cc982;--bad:#ff7a72;--theory:#ffb44a}}
+:root[data-theme="dark"]{--bg:#12151c;--card:#1b2030;--text:#e8ebf3;--sub:#9aa3b8;--line:#2d3448;--accent:#6d93ff;--bar:#6d93ff;--ok:#4cc982;--bad:#ff7a72;--theory:#ffb44a}
+*{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic",sans-serif;line-height:1.5}
+.wrap{max-width:1040px;margin:0 auto;padding:16px}
+h1{font-size:1.4rem;margin:4px 0 2px}
+.sub{color:var(--sub);margin:0 0 14px;font-size:.92rem}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:820px){.grid{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px}
+#stage{height:300px;border-radius:10px;overflow:hidden;background:#cfd8ec;touch-action:manipulation}
+@media (prefers-color-scheme:dark){#stage{background:#2b3452}}
+#stage canvas{display:block;width:100%;height:100%}
+.result{text-align:center;font-size:1.05rem;margin:6px 0 10px}
+.result b{font-size:1.5rem;color:var(--accent)}
+.btns{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+button{font:inherit;min-height:44px;touch-action:manipulation;border:1px solid var(--line);background:var(--card);color:var(--text);padding:9px 14px;border-radius:9px;cursor:pointer}
+button.p{background:var(--accent);border-color:var(--accent);color:#fff}
+button:disabled{opacity:.5;cursor:not-allowed}
+input[type=number]{font:inherit;font-size:16px;width:96px;padding:8px;border:1px solid var(--line);border-radius:9px;background:var(--bg);color:var(--text)}
+.hist{margin-top:10px;display:flex;flex-wrap:wrap;gap:4px;min-height:26px}
+.chip{width:24px;height:24px;border-radius:6px;border:1px solid var(--line);text-align:center;font-size:.8rem;line-height:22px}
+table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
+th,td{padding:7px 6px;text-align:right;border-bottom:1px solid var(--line)}
+th:first-child,td:first-child{text-align:center}
+tfoot td{font-weight:700;border-bottom:none}
+.chart{position:relative;height:210px;margin-top:14px;display:flex;gap:10px;align-items:flex-end;border-bottom:2px solid var(--line);padding:0 4px}
+.col{flex:1;height:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:center}
+.bar{width:100%;max-width:56px;background:var(--bar);border-radius:6px 6px 0 0;height:0;transition:height .15s}
+.val{font-size:.75rem;color:var(--sub);margin-bottom:2px;white-space:nowrap}
+.lbl{display:flex;gap:10px;padding:4px 4px 0}
+.lbl span{flex:1;text-align:center;font-weight:700}
+.theory{position:absolute;left:0;right:0;border-top:2px dashed var(--theory);pointer-events:none}
+.theory em{position:absolute;right:2px;top:-18px;font-size:.72rem;font-style:normal;color:var(--theory)}
+.check{margin-top:14px;display:grid;gap:6px;font-size:.92rem}
+.check div{padding:8px 10px;border:1px solid var(--line);border-radius:9px}
+.ok{color:var(--ok)}.bad{color:var(--bad)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>🎲 3D 주사위 시뮬레이터</h1>
+  <p class="sub">주사위를 대량으로 굴려 각 눈의 출현 빈도를 확인해 보세요. 횟수가 늘수록 각 눈의 비율이 이론값(16.67%)에 가까워지는지 관찰할 수 있습니다.</p>
+  <div class="grid">
+    <section class="card">
+      <div id="stage"></div>
+      <div class="result">마지막 결과: <b id="last">–</b></div>
+      <div class="btns">
+        <button class="p" data-n="1">1회</button>
+        <button class="p" data-n="10">10회</button>
+        <button class="p" data-n="100">100회</button>
+        <input type="number" id="custom" min="1" max="100000" value="1000" aria-label="사용자 지정 횟수">
+        <button id="go">지정 횟수</button>
+        <button id="reset">초기화</button>
+      </div>
+      <div class="hist" id="hist" aria-label="최근 결과"></div>
+    </section>
+    <section class="card">
+      <table>
+        <thead><tr><th>눈</th><th>출현횟수</th><th>백분율</th><th>이론값</th></tr></thead>
+        <tbody id="tbody"></tbody>
+        <tfoot><tr><td>합계</td><td id="sumc">0</td><td id="sump">0.00%</td><td>100%</td></tr></tfoot>
+      </table>
+      <div class="chart" id="chart"><div class="theory" id="theory"><em>이론 16.67%</em></div></div>
+      <div class="lbl" id="lbl"></div>
+      <div class="check">
+        <div id="c1"></div>
+        <div id="c2"></div>
+      </div>
+    </section>
+  </div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+(function(){
+var NORMAL={3:[1,0,0],4:[-1,0,0],1:[0,1,0],6:[0,-1,0],2:[0,0,1],5:[0,0,-1]};
+var ORDER=[3,4,1,6,2,5];
+var counts=[0,0,0,0,0,0,0],total=0,lastVal=null,recent=[],busy=false,anim=null,token=0;
+var $=function(id){return document.getElementById(id)};
+
+/* ---------- 차트/표 ---------- */
+var tbody=$('tbody'),chart=$('chart'),lbl=$('lbl'),bars=[],vals=[],cells=[];
+for(var i=1;i<=6;i++){
+  var tr=document.createElement('tr');
+  tr.innerHTML='<td>'+i+'</td><td></td><td></td><td>16.67%</td>';
+  tbody.appendChild(tr);cells[i]=tr.children;
+  var col=document.createElement('div');col.className='col';
+  var v=document.createElement('div');v.className='val';v.textContent='0%';
+  var b=document.createElement('div');b.className='bar';
+  col.appendChild(v);col.appendChild(b);chart.appendChild(col);
+  bars[i]=b;vals[i]=v;
+  var s=document.createElement('span');s.textContent=i;lbl.appendChild(s);
+}
+function render(){
+  var max=0,sum=0,i;
+  for(i=1;i<=6;i++){sum+=counts[i];var p=total?counts[i]/total*100:0;if(p>max)max=p;}
+  var scale=Math.max(30,Math.ceil((max+3)/5)*5);
+  for(i=1;i<=6;i++){
+    var pc=total?counts[i]/total*100:0;
+    cells[i][1].textContent=counts[i].toLocaleString();
+    cells[i][2].textContent=pc.toFixed(2)+'%';
+    bars[i].style.height=(pc/scale*100)+'%';
+    vals[i].textContent=pc.toFixed(1)+'%';
+  }
+  $('sumc').textContent=sum.toLocaleString();
+  $('sump').textContent=(total?100:0).toFixed(2)+'%';
+  $('theory').style.bottom=(100/6/scale*100)+'%';
+  var ok=sum===total;
+  $('c1').innerHTML='① 눈별 출현횟수 합 <b>'+sum.toLocaleString()+'</b> / 전체 실행횟수 <b>'+total.toLocaleString()+'</b> → <b class="'+(ok?'ok':'bad')+'">'+(ok?'일치 ✔':'불일치 ✘')+'</b>';
+}
+function renderHist(){
+  $('hist').innerHTML=recent.map(function(n){return '<span class="chip">'+n+'</span>'}).join('');
+}
+
+/* ---------- 3D ---------- */
+var stage=$('stage');
+var renderer=new THREE.WebGLRenderer({antialias:true,alpha:true});
+renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));
+stage.appendChild(renderer.domElement);
+var scene=new THREE.Scene();
+var camera=new THREE.PerspectiveCamera(40,1,0.1,50);
+camera.position.set(0,4.6,5.6);camera.lookAt(0,0.6,0);
+scene.add(new THREE.AmbientLight(0xffffff,0.75));
+var dl=new THREE.DirectionalLight(0xffffff,0.7);dl.position.set(3,6,4);scene.add(dl);
+
+function faceTex(n){
+  var c=document.createElement('canvas');c.width=c.height=128;
+  var g=c.getContext('2d');
+  g.fillStyle='#2f5bd8';g.fillRect(0,0,128,128);
+  g.strokeStyle='#8fb0ff';g.lineWidth=6;g.strokeRect(3,3,122,122);
+  var P={1:[[1,1]],2:[[0,0],[2,2]],3:[[0,0],[1,1],[2,2]],4:[[0,0],[2,0],[0,2],[2,2]],5:[[0,0],[2,0],[1,1],[0,2],[2,2]],6:[[0,0],[2,0],[0,1],[2,1],[0,2],[2,2]]};
+  g.fillStyle=n===1?'#ffd23f':'#ffffff';
+  P[n].forEach(function(p){g.beginPath();g.arc(32+p[0]*32,32+p[1]*32,n===1?15:11,0,Math.PI*2);g.fill();});
+  var t=new THREE.CanvasTexture(c);return t;
+}
+var mats=ORDER.map(function(n){return new THREE.MeshStandardMaterial({map:faceTex(n),roughness:.4})});
+var die=new THREE.Mesh(new THREE.BoxGeometry(1.6,1.6,1.6),mats);
+die.position.y=0.8;scene.add(die);
+var shadow=new THREE.Mesh(new THREE.CircleGeometry(1.1,32),new THREE.MeshBasicMaterial({color:0x000000,transparent:true,opacity:.22}));
+shadow.rotation.x=-Math.PI/2;shadow.position.y=0.01;scene.add(shadow);
+die.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),new THREE.Vector3(0,1,0));
+
+function resize(){
+  var w=stage.clientWidth,h=stage.clientHeight;
+  renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();
+}
+if(window.ResizeObserver)new ResizeObserver(resize).observe(stage);
+window.addEventListener('resize',resize);resize();
+
+function topFace(){
+  var best=1,by=-2,v=new THREE.Vector3();
+  for(var n=1;n<=6;n++){
+    v.set(NORMAL[n][0],NORMAL[n][1],NORMAL[n][2]).applyQuaternion(die.quaternion);
+    if(v.y>by){by=v.y;best=n;}
+  }
+  return best;
+}
+function targetQuat(n){
+  var a=new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(NORMAL[n][0],NORMAL[n][1],NORMAL[n][2]),new THREE.Vector3(0,1,0));
+  var yaw=new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,1,0),Math.random()*Math.PI*2);
+  return yaw.multiply(a);
+}
+
+/* ---------- 굴리기 ---------- */
+function setBusy(b){
+  busy=b;
+  document.querySelectorAll('button').forEach(function(x){if(x.id!=='reset')x.disabled=b;});
+}
+function verify(){
+  if(lastVal==null){$('c2').innerHTML='② 3D 화면의 윗면과 마지막 기록값 비교 – 아직 굴리지 않았습니다.';return;}
+  var t=topFace(),ok=t===lastVal;
+  $('c2').innerHTML='② 3D 화면 윗면 <b>'+t+'</b> / 마지막 집계 기록 <b>'+lastVal+'</b> → <b class="'+(ok?'ok':'bad')+'">'+(ok?'일치 ✔':'불일치 ✘')+'</b>';
+}
+function roll(n){
+  if(busy)return;
+  n=Math.max(1,Math.min(100000,Math.floor(n)||1));
+  var arr=new Uint8Array(n),i;
+  for(i=0;i<n;i++)arr[i]=1+Math.floor(Math.random()*6);
+  var last=arr[n-1];
+  var my=++token;setBusy(true);
+  $('last').textContent='…';
+  anim={
+    t0:performance.now(),dur:n===1?1500:1800,added:0,arr:arr,n:n,last:last,
+    q0:die.quaternion.clone(),qT:targetQuat(last),
+    axis:new THREE.Vector3(Math.random()-.5,Math.random()-.5,Math.random()-.5).normalize(),
+    turns:3+Math.random()*2,my:my
+  };
+}
+var tmpQ=new THREE.Quaternion();
+function tick(now){
+  requestAnimationFrame(tick);
+  var a=anim;
+  if(a){
+    var p=Math.min(1,(now-a.t0)/a.dur),e=1-Math.pow(1-p,3);
+    die.quaternion.copy(a.q0).slerp(a.qT,e);
+    tmpQ.setFromAxisAngle(a.axis,(1-e)*a.turns*Math.PI*2);
+    die.quaternion.premultiply(tmpQ);
+    var h=p>=1?0:Math.abs(Math.sin(p*Math.PI*2.5))*1.4*(1-p);
+    die.position.y=0.8+h;
+    var s=1-h*0.25;shadow.scale.set(s,s,s);shadow.material.opacity=0.22*(1-h*0.3);
+    var upto=p>=1?a.n:Math.floor(p*a.n);
+    if(upto>a.added){
+      for(var i=a.added;i<upto;i++)counts[a.arr[i]]++;
+      total+=upto-a.added;a.added=upto;render();
+    }
+    if(p>=1){
+      var k=Math.min(a.n,30);recent=Array.prototype.slice.call(a.arr,a.n-k);
+      lastVal=a.last;$('last').textContent=a.last;renderHist();
+      anim=null;setBusy(false);render();verify();
+    }
+  }
+  renderer.render(scene,camera);
+}
+requestAnimationFrame(tick);
+
+document.querySelectorAll('[data-n]').forEach(function(b){b.addEventListener('click',function(){roll(+b.dataset.n)})});
+$('go').addEventListener('click',function(){roll(+$('custom').value)});
+$('reset').addEventListener('click',function(){
+  token++;anim=null;counts=[0,0,0,0,0,0,0];total=0;lastVal=null;recent=[];
+  die.position.y=0.8;shadow.scale.set(1,1,1);shadow.material.opacity=0.22;
+  $('last').textContent='–';renderHist();setBusy(false);render();verify();
+});
+render();verify();
+})();
+</script>
+</body>
+</html>
