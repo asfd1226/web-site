@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>수학 대모험 게임</title>
+<style>
+:root{--bg:#fff7e6;--card:#fff;--ink:#2b2d42;--sub:#6b7089;--pri:#ff7a1a;--pri2:#ffb347;--ok:#2fb344;--no:#e5383b;--line:#f0e2c8;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#1b1d2b;--card:#262940;--ink:#f1f2f8;--sub:#a3a8c3;--line:#363a58}}
+*{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif;min-height:100vh}
+.wrap{max-width:720px;margin:0 auto;padding:14px}
+.card{background:var(--card);border:2px solid var(--line);border-radius:18px;padding:16px;margin-bottom:12px}
+h1{margin:0;font-size:24px}h2{margin:0 0 10px;font-size:17px}
+.top{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.lv{font-weight:800;color:var(--pri)}
+.bar{height:14px;background:var(--line);border-radius:9px;overflow:hidden;margin-top:6px}
+.bar>i{display:block;height:100%;background:linear-gradient(90deg,var(--pri),var(--pri2));width:0;transition:width .4s}
+.small{font-size:13px;color:var(--sub)}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.mode{border:2px solid var(--line);background:var(--card);color:var(--ink);border-radius:14px;padding:12px;text-align:left;cursor:pointer;font:inherit}
+.mode.on{border-color:var(--pri);background:rgba(255,122,26,.12)}
+.mode b{display:block;font-size:16px}
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.chip{border:2px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;padding:8px 14px;cursor:pointer;font:inherit;font-weight:700}
+.chip.on{background:var(--pri);border-color:var(--pri);color:#fff}
+.btn{width:100%;border:0;border-radius:14px;padding:14px;font:inherit;font-size:18px;font-weight:800;background:var(--pri);color:#fff;cursor:pointer}
+.btn.alt{background:var(--line);color:var(--ink);font-size:15px;padding:10px}
+.hidden{display:none}
+.hud{display:flex;justify-content:space-between;font-weight:800;margin-bottom:8px;flex-wrap:wrap;gap:6px}
+.q{font-size:clamp(40px,12vw,64px);font-weight:900;text-align:center;margin:18px 0;letter-spacing:2px}
+.ans{width:100%;font-size:30px;text-align:center;padding:12px;border-radius:14px;border:2px solid var(--line);background:var(--card);color:var(--ink)}
+.shake{animation:sh .35s}.pop{animation:pp .35s}
+@keyframes sh{25%{transform:translateX(-10px)}75%{transform:translateX(10px)}}
+@keyframes pp{50%{transform:scale(1.06)}}
+.fb{height:30px;text-align:center;font-weight:800;font-size:18px;margin-top:8px}
+.good{color:var(--ok)}.bad{color:var(--no)}
+.badges{display:grid;grid-template-columns:repeat(auto-fill,minmax(98px,1fr));gap:8px}
+.bd{text-align:center;border:2px dashed var(--line);border-radius:12px;padding:8px 4px;font-size:12px;color:var(--sub);filter:grayscale(1);opacity:.6}
+.bd.got{filter:none;opacity:1;border-style:solid;border-color:var(--pri2);color:var(--ink)}
+.bd span{font-size:28px;display:block}
+.stat{display:flex;align-items:center;gap:8px;margin:6px 0;font-size:14px}
+.stat em{width:44px;font-style:normal;font-weight:700}
+.stat .bar{flex:1;margin:0}.stat .bar>i{background:var(--ok)}
+.toast{position:fixed;left:50%;top:calc(14px + env(safe-area-inset-top,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 18px;border-radius:14px;font-weight:800;z-index:9;box-shadow:0 6px 20px rgba(0,0,0,.3)}
+.res{text-align:center}.res .big{font-size:44px;font-weight:900;color:var(--pri)}
+
+html{-webkit-text-size-adjust:100%}
+button{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+body{min-height:100vh;min-height:100dvh;overscroll-behavior-y:contain}
+.wrap{padding-left:max(14px,env(safe-area-inset-left,0px));padding-right:max(14px,env(safe-area-inset-right,0px))}
+.ans{font-size:30px;min-height:60px}
+.pad{display:none;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}
+.touch .pad{display:grid}
+.pad button{font:inherit;font-size:26px;font-weight:800;min-height:56px;border-radius:14px;border:2px solid var(--line);background:var(--card);color:var(--ink);cursor:pointer;user-select:none;-webkit-user-select:none}
+.pad button:active{background:var(--pri2);transform:scale(.96)}
+.pad .del{background:var(--line)}
+.pad .go{background:var(--pri);border-color:var(--pri);color:#fff}
+.touch #ok{display:none}
+.chip,.mode{min-height:44px}
+@media(max-width:420px){.wrap{padding-top:8px}h1{font-size:20px}.card{padding:12px;border-radius:14px}.grid{grid-template-columns:1fr}.badges{grid-template-columns:repeat(3,1fr)}.q{margin:10px 0}.hud{font-size:14px}.btn{font-size:17px}}
+@media(max-height:560px) and (orientation:landscape){.q{font-size:36px;margin:6px 0}.pad button{min-height:42px;font-size:20px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="card">
+ <div class="top"><h1>🧮 수학 대모험</h1><div class="small">🔥 연속 <b id="streak">0</b>일 · 오늘 <b id="today">0</b>회</div></div>
+ <div class="top" style="margin-top:8px"><span class="lv">Lv.<span id="lv">1</span></span><span class="small"><span id="xpt">0</span> / <span id="xpn">100</span> XP</span></div>
+ <div class="bar"><i id="xpbar"></i></div>
+</div>
+
+<div id="home">
+ <div class="card"><h2>① 게임 모드</h2>
+  <div class="grid" id="modes"></div></div>
+ <div class="card"><h2>② 연산 종류 (여러 개 선택)</h2>
+  <div class="chips" id="ops"></div></div>
+ <div class="card"><h2>③ 난이도</h2>
+  <div class="chips" id="lvls"></div></div>
+ <button class="btn" id="start">🚀 모험 시작!</button>
+ <div class="card" style="margin-top:12px"><h2>🏅 배지</h2><div class="badges" id="badges"></div></div>
+ <div class="card"><h2>📊 강점과 약점</h2><div id="stats"></div><div class="small" id="sw" style="margin-top:6px"></div>
+  <button class="btn alt" id="reset" style="margin-top:10px">기록 초기화</button></div>
+</div>
+
+<div id="game" class="hidden">
+ <div class="card" id="gcard">
+  <div class="hud"><span id="h1"></span><span id="h2"></span><span id="h3"></span></div>
+  <div class="bar"><i id="pbar" style="width:100%"></i></div>
+  <div class="q" id="q"></div>
+  <input class="ans" id="ans" type="number" inputmode="numeric" placeholder="정답 입력 후 Enter" autocomplete="off">
+  <div class="fb" id="fb"></div>
+  <div class="pad" id="pad"></div>
+  <button class="btn" id="ok" style="margin-top:8px">확인</button>
+  <button class="btn alt" id="quit" style="margin-top:8px">그만하기</button>
+ </div>
+</div>
+
+<div id="result" class="hidden"><div class="card res">
+ <h2 id="rt">결과</h2><div class="big" id="rs"></div><p id="rd"></p><p class="small" id="rx"></p>
+ <button class="btn" id="again">다시 도전</button>
+ <button class="btn alt" id="home2" style="margin-top:8px">처음으로</button>
+</div></div>
+</div>
+
+<script>
+(function(){
+var KEY="mathAdventureV1";
+var MODES=[
+ {id:"time",n:"⏱ 타임어택",d:"60초 안에 최대한 많이!"},
+ {id:"free",n:"♾ 무한모드",d:"시간 제한 없이 연습"},
+ {id:"chal",n:"🏆 챌린지",d:"10문제 연속 정답 시 레벨업"},
+ {id:"master",n:"👑 마스터전",d:"혼합연산 5문제 클리어"}];
+var OPS=[{id:"+",n:"➕ 덧셈"},{id:"-",n:"➖ 뺄셈"},{id:"*",n:"✖ 곱셈"},{id:"/",n:"➗ 나눗셈"},{id:"mix",n:"🎲 혼합"}];
+var LV=[{id:1,n:"초급 (1~10)",max:10},{id:2,n:"중급 (1~50)",max:50},{id:3,n:"고급 (1~100)",max:100}];
+var BADGES=[
+ {id:"first",i:"🌱",n:"첫 걸음",d:"첫 게임 완료",f:function(s){return s.games>=1}},
+ {id:"ten",i:"📘",n:"10판 달성",d:"10게임 완료",f:function(s){return s.games>=10}},
+ {id:"c10",i:"🔥",n:"10연속 정답",d:"한 게임 10연속",f:function(s){return s.best>=10}},
+ {id:"c20",i:"💥",n:"20연속 정답",d:"한 게임 20연속",f:function(s){return s.best>=20}},
+ {id:"t20",i:"⚡",n:"번개 손",d:"타임어택 20문제",f:function(s){return s.bestTime>=20}},
+ {id:"mst",i:"👑",n:"마스터",d:"마스터전 클리어",f:function(s){return s.masterWins>=1}},
+ {id:"hard",i:"🧠",n:"고수",d:"고급 정답 50개",f:function(s){return s.hardOk>=50}},
+ {id:"day3",i:"📅",n:"3일 연속",d:"3일 연속 학습",f:function(s){return s.streak>=3}},
+ {id:"day7",i:"🌟",n:"7일 연속",d:"7일 연속 학습",f:function(s){return s.streak>=7}},
+ {id:"lv5",i:"🚀",n:"레벨 5",d:"레벨 5 도달",f:function(s){return s.level>=5}}];
+function def(){return{xp:0,level:1,games:0,best:0,bestTime:0,masterWins:0,hardOk:0,streak:0,last:"",days:{},badges:{},ops:{"+":[0,0],"-":[0,0],"*":[0,0],"/":[0,0]}}}
+var S=def();
+try{var raw=localStorage.getItem(KEY);if(raw){S=Object.assign(def(),JSON.parse(raw))}}catch(e){}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+function dstr(d){return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")}
+function $(id){return document.getElementById(id)}
+var sel={mode:"time",ops:{"+":true},lv:1};
+var G=null,timer=null;
+
+function need(l){return 100+(l-1)*50}
+function toast(t){var d=document.createElement("div");d.className="toast";d.textContent=t;document.body.appendChild(d);setTimeout(function(){d.remove()},2200)}
+function addXp(n){S.xp+=n;var up=false;while(S.xp>=need(S.level)){S.xp-=need(S.level);S.level++;up=true}if(up)toast("🎉 레벨 업! Lv."+S.level)}
+function checkBadges(){BADGES.forEach(function(b){if(!S.badges[b.id]&&b.f(S)){S.badges[b.id]=1;toast(b.i+" 배지 획득: "+b.n)}})}
+function stampDay(){var t=dstr(new Date());if(S.last!==t){var y=new Date();y.setDate(y.getDate()-1);S.streak=(S.last===dstr(y))?S.streak+1:1;S.last=t}S.days[t]=(S.days[t]||0)+1}
+
+function renderHome(){
+ $("lv").textContent=S.level;$("xpt").textContent=S.xp;$("xpn").textContent=need(S.level);
+ $("xpbar").style.width=(S.xp/need(S.level)*100)+"%";
+ $("streak").textContent=S.streak;$("today").textContent=S.days[dstr(new Date())]||0;
+ $("modes").innerHTML=MODES.map(function(m){return '<button class="mode'+(sel.mode===m.id?' on':'')+'" data-m="'+m.id+'"><b>'+m.n+'</b><span class="small">'+m.d+'</span></button>'}).join("");
+ $("ops").innerHTML=OPS.map(function(o){var on=o.id==="mix"?(sel.ops.mix):(sel.ops[o.id]&&!sel.ops.mix);return '<button class="chip'+(on?' on':'')+'" data-o="'+o.id+'">'+o.n+'</button>'}).join("");
+ $("lvls").innerHTML=LV.map(function(l){return '<button class="chip'+(sel.lv===l.id?' on':'')+'" data-l="'+l.id+'">'+l.n+'</button>'}).join("");
+ $("badges").innerHTML=BADGES.map(function(b){return '<div class="bd'+(S.badges[b.id]?' got':'')+'"><span>'+b.i+'</span><b>'+b.n+'</b><br>'+b.d+'</div>'}).join("");
+ var names={"+":"덧셈","-":"뺄셈","*":"곱셈","/":"나눗셈"},rows="",rates=[];
+ Object.keys(names).forEach(function(k){var a=S.ops[k],t=a[0]+a[1],r=t?Math.round(a[0]/t*100):null;if(t>=5)rates.push([k,r]);
+  rows+='<div class="stat"><em>'+names[k]+'</em><div class="bar"><i style="width:'+(r||0)+'%"></i></div><span>'+(t?r+'% ('+a[0]+'/'+t+')':'기록 없음')+'</span></div>'});
+ $("stats").innerHTML=rows;
+ if(rates.length>=2){rates.sort(function(a,b){return b[1]-a[1]});
+  $("sw").textContent="💪 강점: "+names[rates[0][0]]+" ("+rates[0][1]+"%) · 🌧 약점: "+names[rates[rates.length-1][0]]+" ("+rates[rates.length-1][1]+"%)"}
+ else $("sw").textContent="두 가지 이상의 연산을 5문제씩 풀면 강점·약점이 나타나요.";
+}
+document.addEventListener("click",function(e){
+ var t=e.target.closest("[data-m],[data-o],[data-l]");if(!t)return;
+ if(t.dataset.m)sel.mode=t.dataset.m;
+ if(t.dataset.l)sel.lv=+t.dataset.l;
+ if(t.dataset.o){var o=t.dataset.o;
+  if(o==="mix"){sel.ops={mix:true}}
+  else{delete sel.ops.mix;if(sel.ops[o]){delete sel.ops[o];if(!Object.keys(sel.ops).length)sel.ops[o]=true}else sel.ops[o]=true}}
+ renderHome();
+});
+
+function rnd(a,b){return Math.floor(Math.random()*(b-a+1))+a}
+function mk(op,max){
+ var a,b,r;
+ if(op==="+"){a=rnd(1,max);b=rnd(1,max);r=a+b}
+ else if(op==="-"){a=rnd(1,max);b=rnd(1,max);if(b>a){var t=a;a=b;b=t}r=a-b}
+ else if(op==="*"){var m=max>=50?(max>=100?20:12):max;a=rnd(2,Math.min(m,max>=100?30:12));b=rnd(2,Math.min(m,12));r=a*b}
+ else{b=rnd(2,Math.min(max,max>=50?15:10));r=rnd(1,Math.min(max,max>=50?15:10));a=b*r}
+ return{t:a+" "+({"+":"+","-":"−","*":"×","/":"÷"}[op])+" "+b,a:r,op:op}
+}
+function mkMaster(max){
+ var x=rnd(2,Math.min(max,12)),y=rnd(2,Math.min(max,12)),z=rnd(1,Math.min(max,20)),k=rnd(0,2);
+ if(k===0)return{t:x+" × "+y+" + "+z,a:x*y+z,op:"*"};
+ if(k===1){var s=x*y;return{t:s+" ÷ "+x+" + "+z+" × 2",a:y+z*2,op:"/"}}
+ var big=x*y+z;return{t:"("+x+" + "+y+") × "+rnd(2,5).toString()+" − "+z,a:0,op:"+",fix:1,x:x,y:y,z:z}
+}
+function nextQ(){
+ var L=LV[sel.lv-1],q;
+ if(G.mode==="master"){
+  if(sel.lv<1)return;
+  var x=rnd(2,Math.min(L.max,12)),y=rnd(2,Math.min(L.max,12)),z=rnd(1,Math.min(L.max,20)),k=rnd(0,2);
+  if(k===0)q={t:x+" × "+y+" + "+z,a:x*y+z,op:"*"};
+  else if(k===1)q={t:(x*y)+" ÷ "+x+" + "+z+" × 2",a:y+z*2,op:"/"};
+  else{var m=rnd(2,5);q={t:"("+x+" + "+y+") × "+m+" − "+z,a:(x+y)*m-z,op:"+"}}
+ }else{
+  var list=sel.ops.mix?["+","-","*","/"]:Object.keys(sel.ops);
+  q=mk(list[rnd(0,list.length-1)],L.max);
+ }
+ G.q=q;$("q").textContent=q.t+" = ?";$("ans").value="";if(!document.body.classList.contains("touch"))$("ans").focus();
+}
+function hud(){
+ var m=G.mode;
+ $("h1").textContent=m==="time"?"⏱ "+G.left+"초":(m==="chal"?"🎯 "+G.streak+"/10 연속":(m==="master"?"👑 "+G.ok+"/5 클리어":"♾ 연습 중"));
+ $("h2").textContent="✅ "+G.ok+"  ❌ "+G.ng;
+ $("h3").textContent="🔥 콤보 "+G.combo;
+ if(m==="time")$("pbar").style.width=(G.left/60*100)+"%";
+ else if(m==="chal")$("pbar").style.width=(G.streak/10*100)+"%";
+ else if(m==="master")$("pbar").style.width=(G.ok/5*100)+"%";
+ else $("pbar").style.width="100%";
+}
+function start(){
+ G={mode:sel.mode,ok:0,ng:0,combo:0,maxCombo:0,streak:0,left:60,xp:0,lives:0,seen:{}};
+ $("home").classList.add("hidden");$("result").classList.add("hidden");$("game").classList.remove("hidden");
+ $("fb").textContent="";nextQ();hud();
+ clearInterval(timer);
+ if(G.mode==="time"){timer=setInterval(function(){G.left--;hud();if(G.left<=0)finish("time")},1000)}
+}
+function submit(){
+ if(!G||G.busy)return;
+ var v=$("ans").value;if(v==="")return;
+ var op=G.q.op,okk=(+v===G.q.a),card=$("gcard");
+ if(S.ops[op]&&G.mode!=="master"){S.ops[op][okk?0:1]++}
+ else if(G.mode==="master"){S.ops[op][okk?0:1]++}
+ card.classList.remove("shake","pop");void card.offsetWidth;
+ var L=sel.lv;
+ if(okk){
+  G.ok++;G.combo++;if(G.combo>G.maxCombo)G.maxCombo=G.combo;G.streak++;
+  if(L===3)S.hardOk++;
+  var gain=(5*L)+(G.combo>=5?Math.min(G.combo,10):0)+(G.mode==="master"?5:0);
+  G.xp+=gain;
+  $("fb").className="fb good";
+  $("fb").textContent="⭕ 정답! +"+gain+"XP"+(G.combo>=5?" 🔥 콤보 보너스!":"");
+  card.classList.add("pop");
+ }else{
+  G.ng++;G.combo=0;G.streak=0;
+  $("fb").className="fb bad";$("fb").textContent="❌ 정답은 "+G.q.a;
+  card.classList.add("shake");
+ }
+ hud();
+ if(G.mode==="chal"&&G.streak>=10)return finish("chal");
+ if(G.mode==="master"&&G.ok>=5)return finish("master");
+ nextQ();
+}
+function finish(why){
+ clearInterval(timer);if(!G)return;
+ var g=G;G=null;
+ var bonus=0,title="게임 결과",line="";
+ S.games++;stampDay();
+ if(g.maxCombo>S.best)S.best=g.maxCombo;
+ if(why==="time"){if(g.ok>S.bestTime)S.bestTime=g.ok;title="⏱ 타임 종료!";line=g.ok+"문제 정답"}
+ else if(why==="chal"){bonus=30;title="🏆 챌린지 성공!";line="10문제 연속 정답! 레벨업 보너스 +30XP"}
+ else if(why==="master"){bonus=40;S.masterWins++;title="👑 마스터전 클리어!";line="혼합연산 5문제 클리어! 보너스 +40XP"}
+ else{title="연습 종료";line=g.ok+"문제 정답"}
+ var tot=g.xp+bonus;
+ addXp(tot);checkBadges();save();
+ $("game").classList.add("hidden");$("result").classList.remove("hidden");
+ $("rt").textContent=title;$("rs").textContent="+"+tot+" XP";
+ var acc=g.ok+g.ng?Math.round(g.ok/(g.ok+g.ng)*100):0;
+ $("rd").textContent=line+" · 정답률 "+acc+"% · 최대 콤보 "+g.maxCombo;
+ $("rx").textContent="오늘 "+(S.days[dstr(new Date())]||0)+"회 도전 · 연속 학습 "+S.streak+"일";
+}
+$("start").onclick=start;
+$("ok").onclick=submit;
+$("ans").addEventListener("keydown",function(e){if(e.key==="Enter")submit()});
+$("quit").onclick=function(){if(G&&(G.ok+G.ng)>0)finish(G.mode==="free"?"free":"quit");else{clearInterval(timer);G=null;$("game").classList.add("hidden");$("home").classList.remove("hidden");renderHome()}};
+$("again").onclick=start;
+$("home2").onclick=function(){$("result").classList.add("hidden");$("home").classList.remove("hidden");renderHome()};
+$("reset").onclick=function(){if(confirm("모든 학습 기록을 지울까요?")){S=def();save();renderHome()}};
+(function(){
+ var touch=window.matchMedia&&matchMedia("(pointer:coarse)").matches;
+ if(!touch)return;
+ document.body.classList.add("touch");
+ var a=$("ans");a.readOnly=true;a.setAttribute("inputmode","none");a.placeholder="숫자를 눌러 입력";
+ var keys=["1","2","3","4","5","6","7","8","9","⌫","0","확인"];
+ $("pad").innerHTML=keys.map(function(k){return '<button type="button" class="'+(k==="⌫"?"del":(k==="확인"?"go":""))+'" data-k="'+k+'">'+k+'</button>'}).join("");
+ $("pad").addEventListener("click",function(e){
+  var b=e.target.closest("[data-k]");if(!b)return;var k=b.dataset.k;
+  if(k==="⌫")a.value=a.value.slice(0,-1);
+  else if(k==="확인")submit();
+  else if(a.value.length<6)a.value+=k;
+ });
+})();
+renderHome();
+})();
+</script>
+</body>
+</html>
