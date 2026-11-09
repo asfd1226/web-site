@@ -100,29 +100,80 @@
     }
 
     /* 프로젝트 목록 */
-    .project-list {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 16px;
-    }
-    .project-item {
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 20px;
-      background: var(--bg);
-    }
-    .project-item:hover { border-color: var(--accent); }
-    .project-link {
-      display: inline-block;
-      margin-top: 4px;
-      padding: 8px 16px;
-      border-radius: 8px;
-      background: var(--accent);
-      color: #fff;
-      font-weight: 600;
-      text-decoration: none;
-    }
-    .project-link:hover { background: var(--accent-dark); }
+    
+/* 프로젝트 목록 */
+.project-list {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px;
+}
+
+/* 프로젝트 카드 */
+.project-item {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 20px;
+  background: var(--bg);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  min-width: 0;
+}
+
+/* 마우스를 올렸을 때 */
+.project-item:hover {
+  border-color: var(--accent);
+  transform: translateY(-5px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+}
+
+/* 프로젝트 제목 */
+.project-item h3 {
+  font-size: 1.05rem;
+  margin-bottom: 12px;
+}
+
+/* 프로젝트 설명 */
+.project-item p {
+  font-size: 0.9rem;
+  color: var(--muted);
+  line-height: 1.6;
+  flex-grow: 1;
+}
+
+/* 결과물 보기 버튼 */
+.project-link {
+  display: inline-block;
+  align-self: flex-start;
+  margin-top: 12px;
+  padding: 8px 14px;
+  border-radius: 8px;
+  background: var(--accent);
+  color: #fff;
+  font-weight: 600;
+  font-size: 0.9rem;
+  text-decoration: none;
+  transition: background 0.2s ease;
+}
+
+.project-link:hover {
+  background: var(--accent-dark);
+}
+
+/* 태블릿: 2열 배치 */
+@media (max-width: 800px) {
+  .project-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* 스마트폰: 1열 배치 */
+@media (max-width: 640px) {
+  .project-list {
+    grid-template-columns: 1fr;
+  }
+}
+
 
     footer {
       text-align: center;
